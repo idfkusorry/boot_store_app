@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# База данных (если файл БД)
+*.db
+*.sqlite
+
+# Сборка PyInstaller
+dist/
+build/
+*.spec
+
+# Конфиг с паролем (ВАЖНО!)
+config.py
+
+# IDE
+.vscode/
+.idea/
+
+# Фото (если много места)
+# images/*.jpg  # раскомментируй если фото большие

@@ -28,7 +28,6 @@ class ProductForm:
             self.load_product_data()
     
     def create_widgets(self):
-        # Основной фрейм с прокруткой
         canvas = tk.Canvas(self.window)
         scrollbar = ttk.Scrollbar(self.window, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
@@ -42,14 +41,12 @@ class ProductForm:
         
         row = 0
         
-        # Фото
         tk.Label(scrollable_frame, text="Фото:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.photo_label = tk.Label(scrollable_frame, text="Нет фото", width=30, height=10, relief="solid")
         self.photo_label.grid(row=row, column=1, padx=5, pady=5)
         tk.Button(scrollable_frame, text="Выбрать фото", command=self.select_photo).grid(row=row, column=2, padx=5, pady=5)
         row += 1
         
-        # Артикул (только для добавления)
         tk.Label(scrollable_frame, text="Артикул:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.article_entry = tk.Entry(scrollable_frame, width=30)
         self.article_entry.grid(row=row, column=1, padx=5, pady=5)
@@ -58,7 +55,6 @@ class ProductForm:
             self.article_entry.config(state="readonly")
         row += 1
         
-        # Наименование
         tk.Label(scrollable_frame, text="Наименование:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.name_combo = ttk.Combobox(scrollable_frame, width=27)
         self.name_combo.grid(row=row, column=1, padx=5, pady=5)
@@ -67,7 +63,6 @@ class ProductForm:
         self.name_combo['values'] = list(self.name_values.keys())
         row += 1
         
-        # Категория
         tk.Label(scrollable_frame, text="Категория:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.category_combo = ttk.Combobox(scrollable_frame, width=27)
         self.category_combo.grid(row=row, column=1, padx=5, pady=5)
@@ -76,7 +71,6 @@ class ProductForm:
         self.category_combo['values'] = list(self.category_values.keys())
         row += 1
         
-        # Производитель
         tk.Label(scrollable_frame, text="Производитель:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.manufacturer_combo = ttk.Combobox(scrollable_frame, width=27)
         self.manufacturer_combo.grid(row=row, column=1, padx=5, pady=5)
@@ -85,7 +79,6 @@ class ProductForm:
         self.manufacturer_combo['values'] = list(self.manufacturer_values.keys())
         row += 1
         
-        # Поставщик
         tk.Label(scrollable_frame, text="Поставщик:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.supplier_combo = ttk.Combobox(scrollable_frame, width=27)
         self.supplier_combo.grid(row=row, column=1, padx=5, pady=5)
@@ -94,39 +87,33 @@ class ProductForm:
         self.supplier_combo['values'] = list(self.supplier_values.keys())
         row += 1
         
-        # Цена
         tk.Label(scrollable_frame, text="Цена:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.price_entry = tk.Entry(scrollable_frame, width=30)
         self.price_entry.grid(row=row, column=1, padx=5, pady=5)
         row += 1
         
-        # Ед. измерения
         tk.Label(scrollable_frame, text="Ед. измерения:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.unit_entry = tk.Entry(scrollable_frame, width=30)
         self.unit_entry.insert(0, "шт.")
         self.unit_entry.grid(row=row, column=1, padx=5, pady=5)
         row += 1
         
-        # Количество
         tk.Label(scrollable_frame, text="Количество на складе:").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.quantity_entry = tk.Entry(scrollable_frame, width=30)
         self.quantity_entry.grid(row=row, column=1, padx=5, pady=5)
         row += 1
         
-        # Скидка
         tk.Label(scrollable_frame, text="Скидка (%):").grid(row=row, column=0, sticky="e", padx=5, pady=5)
         self.discount_entry = tk.Entry(scrollable_frame, width=30)
         self.discount_entry.insert(0, "0")
         self.discount_entry.grid(row=row, column=1, padx=5, pady=5)
         row += 1
         
-        # Описание
         tk.Label(scrollable_frame, text="Описание:").grid(row=row, column=0, sticky="ne", padx=5, pady=5)
         self.description_text = tk.Text(scrollable_frame, width=30, height=5)
         self.description_text.grid(row=row, column=1, padx=5, pady=5)
         row += 1
         
-        # Кнопки
         btn_frame = tk.Frame(scrollable_frame)
         btn_frame.grid(row=row, column=0, columnspan=3, pady=20)
         
@@ -138,7 +125,6 @@ class ProductForm:
         filename = filedialog.askopenfilename(title="Выберите фото", filetypes=filetypes)
         if filename:
             self.photo_path = filename
-            # Превью
             img = Image.open(filename)
             img.thumbnail((150, 150))
             photo = ImageTk.PhotoImage(img)
@@ -174,16 +160,13 @@ class ProductForm:
     
     def save_photo(self):
         if self.photo_path:
-            # Ограничение 300x200
             img = Image.open(self.photo_path)
             img.thumbnail((300, 200))
             
-            # Генерация имени файла
             ext = os.path.splitext(self.photo_path)[1]
             new_filename = f"product_{self.article_entry.get()}{ext}"
             save_path = os.path.join("images", new_filename)
             
-            # Удаляем старое фото если есть
             if self.current_photo and os.path.exists(f"images/{self.current_photo}"):
                 os.remove(f"images/{self.current_photo}")
             
@@ -237,18 +220,16 @@ class ProductForm:
             unit = self.unit_entry.get()
             description = self.description_text.get("1.0", tk.END).strip()
             
-            # Сохраняем фото
             photo_filename = self.save_photo()
             
-            # Сохраняем в БД
-            if self.article:  # Редактирование
+            if self.article:  
                 update_product(
                     article, self.name_values[product_name], unit, price,
                     self.supplier_values[supplier], self.manufacturer_values[manufacturer],
                     self.category_values[category], discount, quantity, description, photo_filename
                 )
                 messagebox.showinfo("Успех", "Товар обновлен")
-            else:  # Добавление
+            else:  
                 add_product(
                     article, self.name_values[product_name], unit, price,
                     self.supplier_values[supplier], self.manufacturer_values[manufacturer],

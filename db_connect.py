@@ -190,7 +190,6 @@ def get_filtered_sorted_products(search_text, supplier_id, sort_order):
     """
     params = []
     
-    # Поиск по тексту
     if search_text:
         query += """ AND (
             pn.name ILIKE %s OR 
@@ -203,12 +202,10 @@ def get_filtered_sorted_products(search_text, supplier_id, sort_order):
         search_pattern = f"%{search_text}%"
         params.extend([search_pattern] * 6)
     
-    # Фильтр по поставщику
     if supplier_id and supplier_id != "all":
         query += " AND p.id_supplier = %s"
         params.append(supplier_id)
     
-    # Сортировка
     if sort_order == "asc":
         query += " ORDER BY p.quantity_in_stock ASC"
     elif sort_order == "desc":
@@ -217,6 +214,156 @@ def get_filtered_sorted_products(search_text, supplier_id, sort_order):
         query += " ORDER BY pn.name"
     
     cur.execute(query, params)
+    products = cur.fetchall()
+    cur.close()
+    conn.close()
+    return products
+
+def get_all_orders():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            o.id_order,
+            o.order_date,
+            o.delivery_date,
+            pp.address,
+            u.full_name,
+            o.pickup_code,
+            s.name as status_name
+        FROM "order" o
+        JOIN pickup_point pp ON o.id_pickup_point = pp.id_pickup_point
+        JOIN "user" u ON o.id_user = u.id_user
+        JOIN status s ON o.id_status = s.id_status
+        ORDER BY o.id_order DESC
+    """)
+    orders = cur.fetchall()
+    cur.close()
+    conn.close()
+    return orders
+
+def get_order_by_id(order_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            o.id_order,
+            o.order_date,
+            o.delivery_date,
+            o.id_pickup_point,
+            pp.address,
+            o.id_user,
+            u.full_name,
+            o.pickup_code,
+            o.id_status,
+            s.name as status_name
+        FROM "order" o
+        JOIN pickup_point pp ON o.id_pickup_point = pp.id_pickup_point
+        JOIN "user" u ON o.id_user = u.id_user
+        JOIN status s ON o.id_status = s.id_status
+        WHERE o.id_order = %s
+    """, (order_id,))
+    order = cur.fetchone()
+    cur.close()
+    conn.close()
+    return order
+
+def get_all_statuses():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id_status, name FROM status ORDER BY id_status")
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
+
+def get_all_pickup_points():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id_pickup_point, address FROM pickup_point ORDER BY id_pickup_point")
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
+
+def get_all_users_by_role(role_name="Авторизированный клиент"):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT u.id_user, u.full_name
+        FROM "user" u
+        JOIN role r ON u.id_role = r.id_role
+        WHERE r.name = %s
+        ORDER BY u.full_name
+    """, (role_name,))
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
+
+def add_order(order_date, delivery_date, id_pickup_point, id_user, pickup_code, id_status):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO "order" (order_date, delivery_date, id_pickup_point, id_user, pickup_code, id_status)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id_order
+    """, (order_date, delivery_date, id_pickup_point, id_user, pickup_code, id_status))
+    order_id = cur.fetchone()[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+    return order_id
+
+def update_order(order_id, order_date, delivery_date, id_pickup_point, id_user, pickup_code, id_status):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE "order" SET 
+            order_date = %s, delivery_date = %s, id_pickup_point = %s,
+            id_user = %s, pickup_code = %s, id_status = %s
+        WHERE id_order = %s
+    """, (order_date, delivery_date, id_pickup_point, id_user, pickup_code, id_status, order_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def delete_order(order_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM \"order\" WHERE id_order = %s", (order_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def get_order_items(order_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            oi.id_order_item,
+            p.article,
+            pn.name as product_name,
+            oi.quantity
+        FROM order_item oi
+        JOIN product p ON oi.product_article = p.article
+        JOIN product_name pn ON p.id_product_name = pn.id_product_name
+        WHERE oi.id_order = %s
+    """, (order_id,))
+    items = cur.fetchall()
+    cur.close()
+    conn.close()
+    return items
+
+def get_all_products_list():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT p.article, pn.name, p.price
+        FROM product p
+        JOIN product_name pn ON p.id_product_name = pn.id_product_name
+        ORDER BY pn.name
+    """)
     products = cur.fetchall()
     cur.close()
     conn.close()
